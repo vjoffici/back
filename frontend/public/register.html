@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Register</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; }
+    form { max-width: 420px; margin: 0 auto; }
+    label { display:block; margin-top:0.75rem }
+    input { width:100%; padding:0.5rem; box-sizing:border-box }
+    button { margin-top:1rem; padding:0.6rem 1rem }
+    .note { font-size:0.9rem; color:#555 }
+  </style>
+</head>
+<body>
+  <h1>Create account</h1>
+  <form id="registerForm">
+    <label>Name
+      <input type="text" name="name" id="name" required />
+    </label>
+
+    <label>Email
+      <input type="email" name="email" id="email" required />
+    </label>
+
+    <label>Phone
+      <input type="tel" name="phone" id="phone" placeholder="+1234567890" />
+    </label>
+
+    <label>Password
+      <input type="password" name="password" id="password" required minlength="6" />
+    </label>
+
+    <!-- hidden fields for location -->
+    <input type="hidden" name="latitude" id="latitude" />
+    <input type="hidden" name="longitude" id="longitude" />
+
+    <p class="note">This page will attempt to capture your location (browser permission required). You can allow or deny; location is optional.</p>
+
+    <button type="submit">Register</button>
+  </form>
+
+  <div id="message"></div>
+
+  <script>
+    const form = document.getElementById('registerForm');
+    const msg = document.getElementById('message');
+
+    // Try to get geolocation when page loads
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        document.getElementById('latitude').value = pos.coords.latitude;
+        document.getElementById('longitude').value = pos.coords.longitude;
+      }, (err) => {
+        console.info('Geolocation not available or permission denied:', err.message);
+      }, { enableHighAccuracy: false, timeout: 10000 });
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = 'Registering...';
+
+      const payload = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        password: document.getElementById('password').value,
+        latitude: document.getElementById('latitude').value || undefined,
+        longitude: document.getElementById('longitude').value || undefined
+      };
+
+      try {
+        const res = await fetch('http://localhost:3000/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          msg.textContent = 'Registered successfully. Token: ' + (data.data.token ? data.data.token.substr(0,20) + '...' : '');
+        } else {
+          msg.textContent = 'Error: ' + (data.message || JSON.stringify(data.errors || data));
+        }
+      } catch (err) {
+        msg.textContent = 'Request failed: ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>

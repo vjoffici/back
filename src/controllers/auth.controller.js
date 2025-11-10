@@ -24,7 +24,7 @@ exports.register = asyncHandler(async (req, res, next) => {
     });
   }
 
-  const { name, email, password } = req.body;
+  const { name, email, password, phone, latitude, longitude } = req.body;
 
   // Check if user exists
   const userExists = await User.findOne({ email });
@@ -36,11 +36,14 @@ exports.register = asyncHandler(async (req, res, next) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  // Create user
+  // Create user (include optional phone and location)
   const user = await User.create({
     name,
     email,
-    password: hashedPassword
+    password: hashedPassword,
+    phone: phone || '',
+    latitude: typeof latitude !== 'undefined' ? latitude : null,
+    longitude: typeof longitude !== 'undefined' ? longitude : null
   });
 
   // Generate token
@@ -52,7 +55,10 @@ exports.register = asyncHandler(async (req, res, next) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        phone: user.phone || null,
+        latitude: user.latitude,
+        longitude: user.longitude
       },
       token
     }

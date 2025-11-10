@@ -28,6 +28,20 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user'
   },
+  phone: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  // Simple location fields (latitude / longitude) captured from client
+  latitude: {
+    type: Number,
+    default: null
+  },
+  longitude: {
+    type: Number,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now

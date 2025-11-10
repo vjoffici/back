@@ -11,7 +11,10 @@ router.use(authLimiter);
 const registerValidation = [
   body('email').isEmail().normalizeEmail(),
   body('password').isLength({ min: 6 }),
-  body('name').trim().notEmpty()
+  body('name').trim().notEmpty(),
+  body('phone').optional().isMobilePhone('any').withMessage('Please provide a valid phone number'),
+  body('latitude').optional().isFloat({ min: -90, max: 90 }).withMessage('Invalid latitude'),
+  body('longitude').optional().isFloat({ min: -180, max: 180 }).withMessage('Invalid longitude')
 ];
 
 const loginValidation = [
